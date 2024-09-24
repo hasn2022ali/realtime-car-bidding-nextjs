@@ -7,6 +7,8 @@ export default function Home() {
     auctionId: number;
     highestBid: number;
     highestBidder: number;
+    user_id: number;
+    username: string;
     timestamp: string;
   }
 
@@ -91,6 +93,8 @@ export default function Home() {
             auctionId: data.carId,
             highestBid: data.highestBid,
             highestBidder: data.highestBidder,
+            user_id: data.user_id,
+            username: data.username,
             timestamp: new Date().toISOString(),
           };
           const updatedStatuses = [newStatus, ...prevStatuses];
@@ -102,7 +106,7 @@ export default function Home() {
     wsRef.current.onclose = () => {
       console.log("Disconnected from WebSocket server");
       setIsConnected(false);
-      // setTimeout(connectWebSocket, 5000);
+      setTimeout(connectWebSocket, 5000);
     };
 
     wsRef.current.onerror = (error) => {
@@ -160,6 +164,7 @@ export default function Home() {
           type: "PLACE_BID",
           auctionId: activeCar,
           amount: parseFloat(bidAmount),
+          username: loggedUserName,
         })
       );
     } else {
@@ -442,6 +447,9 @@ export default function Home() {
                               key={item?.highestBid}
                               className="flex justify-between px-5"
                             >
+                              <span>
+                                User: {item?.user_id}, {item?.username}
+                              </span>
                               <span>Auction: {item?.auctionId}</span>
                               <span>BID : {item?.highestBid}</span>
                             </div>
@@ -657,14 +665,24 @@ export default function Home() {
                             <span>{item?.highest_bid}</span>
                           )}
                         </td>
-                        <td>{item?.highest_bidder}</td>
+                        <td>
+                          {auctionStatus[0]?.auctionId == item.id ? (
+                            <span>
+                              {auctionStatus.length <= 0
+                                ? item?.highest_bidder
+                                : auctionStatus[0]?.user_id}
+                            </span>
+                          ) : (
+                            <span>{item?.highest_bidder}</span>
+                          )}
+                        </td>
                         {Number(activeCar) !== item?.id ? (
                           <td
                             className="cursor-pointer"
                             onClick={() => subscribeToAuction(item?.id)}
                           >
                             <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-yellow-300 border border-yellow-300">
-                              Subscribe, {auctionStatus.length}
+                              Subscribe
                             </span>
                           </td>
                         ) : (
