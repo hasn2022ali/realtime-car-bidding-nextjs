@@ -39,6 +39,7 @@ export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState("");
   const [placeBidError, setPlaceBidError] = useState<string>("");
+  const [loggedUserName, setLoggedUserName] = useState<string>("");
 
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -116,9 +117,11 @@ export default function Home() {
   useEffect(() => {
     console.log("is logged in", isLoggedIn);
     const storedToken = localStorage.getItem("token");
-    if (storedToken) {
+    const storedLoggedUserName = localStorage.getItem("bid_username");
+    if (storedToken && storedLoggedUserName) {
       // console.log("stored Token", storedToken);
       setToken(storedToken);
+      setLoggedUserName(storedLoggedUserName);
       setIsLoggedIn(true);
       fetchAuctions(storedToken);
     }
@@ -257,7 +260,9 @@ export default function Home() {
         const data = await response.json();
         setToken(data.token);
         localStorage.setItem("token", data.token);
+        localStorage.setItem("bid_username", username);
         setIsLoggedIn(true);
+        setLoggedUserName(username);
         fetchAuctions(data.token);
       } else {
         console.error("Login failed");
@@ -270,7 +275,9 @@ export default function Home() {
   const handleLogout = () => {
     setToken("");
     localStorage.removeItem("token");
+    localStorage.removeItem("bid_username");
     setIsLoggedIn(false);
+    setLoggedUserName("");
     setAuctions([]);
   };
 
@@ -298,7 +305,9 @@ export default function Home() {
     <div className="flex w-screen">
       <div className="sidebar w-60 p-10">
         <div className="optionsList pt-10 ">
-          <ul>
+          <h1 className="text-[24px]">{loggedUserName}</h1>
+          <hr />
+          <ul className="mt-4">
             <li>
               <a href="">Auctions</a>
             </li>
