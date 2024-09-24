@@ -439,6 +439,13 @@ export default function Home() {
                       </label>
                     </div>
                     <div className="text-black max-h-[300px] overflow-y-auto pt-5">
+                      <div className="flex justify-between px-5">
+                        <span className="">User: id, name</span>
+                        <span> Auction Id </span>
+                        <span> Amount </span>
+                      </div>
+                      <hr />
+                      <hr />
                       {auctionStatus.map((item) => {
                         console.log("item from server:", item);
                         return (
@@ -447,11 +454,14 @@ export default function Home() {
                               key={item?.highestBid}
                               className="flex justify-between px-5"
                             >
-                              <span>
-                                User: {item?.user_id}, {item?.username}
+                              <span className="w-[30%]">
+                                {item?.user_id}, {item?.username}
                               </span>
-                              <span>Auction: {item?.auctionId}</span>
-                              <span>BID : {item?.highestBid}</span>
+                              <span className="inline-block w-20 text-center">
+                                {" "}
+                                {item?.auctionId}
+                              </span>
+                              <span> {item?.highestBid}</span>
                             </div>
                             <hr />
                           </>
