@@ -290,8 +290,10 @@ export default function Home() {
     setToken("");
     localStorage.removeItem("token");
     localStorage.removeItem("bid_username");
+    localStorage.removeItem("auctionSubscribedTo");
     setIsLoggedIn(false);
     setLoggedUserName("");
+    setAuctionSubscribedTo("");
     setAuctions([]);
   };
 
