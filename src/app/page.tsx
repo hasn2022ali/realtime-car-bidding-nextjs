@@ -31,12 +31,13 @@ export default function Home() {
   const [startingPrice, setStartingPrice] = useState("");
   const [auctionStart, setAuctionStart] = useState("");
   const [auctionEnd, setAuctionEnd] = useState("");
-  const [activeCar, setActiveCar] = useState("");
+  const [auctionSubscribedTo, setAuctionSubscribedTo] = useState("");
   const [bidAmount, setBidAmount] = useState("");
   const [auctions, setAuctions] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
+  // const [auctionSubscribedTo, setAuctionSubscribedTo] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState("");
@@ -47,7 +48,8 @@ export default function Home() {
 
   const connectWebSocket = useCallback(() => {
     wsRef.current = new WebSocket("ws://localhost:8080");
-
+    const storedAuctionID = localStorage.getItem("auctionSubscribedTo");
+    console.log("the subscribed item 1: ", storedAuctionID);
     wsRef.current.onopen = () => {
       console.log("Connected to WebSocket server");
       setIsConnected(true);
@@ -62,6 +64,11 @@ export default function Home() {
       switch (data.type) {
         case "AUTHENTICATED":
           console.log("Authenticated with user");
+          console.log("the subscribed item", storedAuctionID);
+          if (storedAuctionID !== null && storedAuctionID?.length >= 1) {
+            subscribeToAuction(Number(storedAuctionID));
+            setAuctionSubscribedTo(storedAuctionID);
+          }
           break;
         case "AUTH_ERROR":
           setError(data.message);
@@ -69,11 +76,13 @@ export default function Home() {
           break;
         case "SUBSCRIBED":
           console.log("Subscribed to auction:", data.auctionId);
-          setActiveCar(data.auctionId);
+          setAuctionSubscribedTo(data.auctionId);
+          localStorage.setItem("auctionSubscribedTo", data.auctionId);
           break;
         case "UNSUBSCRIBED":
           console.log("Unsubscribed from auction:", data.auctionId);
-          setActiveCar("");
+          setAuctionSubscribedTo("");
+          localStorage.setItem("auctionSubscribedTo", "");
           break;
         case "AUCTION_STATUSES":
           console.log("Unsubscribed from auction:", data);
@@ -144,7 +153,7 @@ export default function Home() {
     console.log("array", auctionStatus);
 
     const lastItem = auctionStatus.find(
-      (a) => a.auctionId === Number(activeCar)
+      (a) => a.auctionId === Number(auctionSubscribedTo)
     );
     const currentHighestBid =
       lastItem && lastItem?.highestBid ? lastItem?.highestBid : 0;
@@ -162,7 +171,7 @@ export default function Home() {
       wsRef.current.send(
         JSON.stringify({
           type: "PLACE_BID",
-          auctionId: activeCar,
+          auctionId: auctionSubscribedTo,
           amount: parseFloat(bidAmount),
           username: loggedUserName,
         })
@@ -173,7 +182,7 @@ export default function Home() {
   };
 
   const subscribeToAuction = (auctionId: number) => {
-    // setActiveCar(auctionId);
+    // setAuctionSubscribedTo(auctionId);
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "SUBSCRIBE", auctionId }));
       wsRef.current.send(
@@ -183,7 +192,7 @@ export default function Home() {
   };
 
   const unsubscribeFromAuction = (auctionId: number) => {
-    // setActiveCar("");
+    // setAuctionSubscribedTo("");
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "UNSUBSCRIBE", auctionId }));
     }
@@ -426,7 +435,7 @@ export default function Home() {
                         Auction ID
                       </label>
                       <div className="text-black ">
-                        <h2>{activeCar}</h2>
+                        <h2>{auctionSubscribedTo}</h2>
                       </div>
                     </div>
 
@@ -492,7 +501,7 @@ export default function Home() {
                         id="auctionId"
                         name="auctionID"
                         type="text"
-                        value={activeCar}
+                        value={auctionSubscribedTo}
                         disabled={true}
                         placeholder="Auction Id"
                         aria-label="Name"
@@ -686,7 +695,7 @@ export default function Home() {
                             <span>{item?.highest_bidder}</span>
                           )}
                         </td>
-                        {Number(activeCar) !== item?.id ? (
+                        {Number(auctionSubscribedTo) !== item?.id ? (
                           <td
                             className="cursor-pointer"
                             onClick={() => subscribeToAuction(item?.id)}
